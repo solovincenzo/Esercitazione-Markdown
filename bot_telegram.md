@@ -146,4 +146,98 @@ parse_mode: "Markdown"
 });`
 
 Ora eseguiamo il comando /codeday e dovrebbe apparire questo:
- 
+
+ ![Testo alternativo](https://hackerstribe.com/wp-content/uploads/2017/07/telegram-markdown.png)
+
+ Telegram supporta anche corsivo, codice in linea, blocchi di codice e URL in linea insieme all’opzione
+grassetto che abbiamo appena usato.
+
+## Inline bot di Telegram
+
+Questa parte spiegherà come trasformare questo bot in un bot in linea, che può essere richiamato da
+qualsiasi parte e aiuta gli utenti a trovare e inviare contenuti al vostro bot. I Bot in linea infatti permettono
+l’invio di contenuti più strutturati e di seguire determinati “flow” scritti all’interno del nostro bot per
+svolgere le azioni più disparate.
+
+## Step 0: Abilita la modalità linea in Botfather
+
+I bot non hanno la modalità in linea abilitata di default, quindi avrai bisogno di inviare il
+comando /setinline a Botfather per abilitarla.
+Puoi usare qualsiasi cosa come segnaposto testuale, io ho usato “Search Codeday...” per il mio.
+
+
+ ![Testo alternativo](https://hackerstribe.com/wp-content/uploads/2017/07/discussione-botfather-telegram.png)
+
+Dopo aver abilitato la modalità in linea, potresti aver bisogno di riavviare qualsiasi Telegram client che stai
+utilizzando per far si che le modifiche siano efficaci. Una volta che avete riavviato, digitate il vostro
+username seguito da uno spazio. Se vedete il placeholder che avete impostato, siete pronti per il passo
+successivo.
+
+## Step 1: implementare query in linea
+
+Ora abbiamo bisogno di indicare al nostro script come reagire alle query in linea.
+Per far questo, ecco il codice “Hello World” creato per l’occasione.
+
+`telegram.on("inline_query", (query) => {
+telegram.answerInlineQuery(query.id, [
+{
+type: "article",
+id: "testarticle",
+title: "Hello world",
+input_message_content: {
+message_text: "Hello, world! This was sent from my super cool inline bot."
+}
+}
+]);
+});`
+
+Come funziona:
+Su una query in linea
+Rispondi con una matrice con il risultato di 1 articolo
+Con il titolo “Hello World” e invia il messaggio “Hello world! Questo è stato inviato dal mio superfigo bot
+in linea”.
+
+## Step 2: implementare le Clear API
+
+Ora finalmente facciamo vedere gli eventi Codeday. Abbiamo bisogno di passare su ogni evento e
+trasformarlo in un oggetto che Telegram API possa comprendere, quindi dovreste avere qualcosa del
+genere:
+
+`telegram.on("inline_query", (query) => {
+var searchTerm = query.query.trim();
+clear.getRegions((regions) => {
+var queryResults = [ ];
+regions.forEach((region) => {
+if(region.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1 && region.cur
+queryResults.push({
+type: "article",
+id: region.id,
+title: "CodeDay " + region.name,
+description: "Hosted at " + region.current_event.venue.full_address,
+input_message_content: {
+latitude: region.location.lat,
+longitude: region.location.lng,
+title: "CodeDay " + region.name,
+address: region.current_event.venue.full_address
+}
+});
+}
+});
+telegram.answerInlineQuery(query.id, queryResults);
+});
+});
+`
+Quello che stiamo facendo è:
+– sopra una query in linea...
+– chiedere a Clear una lista di eventi...
+– trasformare questi eventi in oggetti che Telegram API sappia leggere
+– fare in modo che il messaggio contenga il luogo dove CodeDay si trova.
+
+##Parte III: conclusioni
+
+Ora che padroneggiate le basi della creazione di un bot, vi invito a giocare con i bot API di Telegram e
+fare qualcosa di divertente con essi! Potete fare giochi, tools, calcolatori... qualsiasi cosa, davvero.
+Prendete confidenza con Node e telegram e vi renderete conto di quanto flessibile possa essere un Bot.
+Date un’occhiata a questa pagina per vedere quante cose potete costruire.
+Fateci sapere se vi è piaciuto e restate in attesa del prossimo articolo su come effettuare il deploy del
+nostro bot su un server online.
